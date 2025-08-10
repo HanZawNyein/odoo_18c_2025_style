@@ -8,23 +8,35 @@ on:
 jobs:
   update-modules:
     runs-on: ubuntu-latest
-    services:
-      # Optional: if you want to spin up services like db
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: odoo
-          POSTGRES_USER: odoo
-          POSTGRES_PASSWORD: odoo
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Compose
+      - name: Create odoo_pg_pass secret file
+        run: echo "odoo" > odoo_pg_pass
+
+      - name: Create config directory and odoo.conf
+        run: |
+          mkdir -p config
+          cat > config/odoo.conf <<EOF
+          [options]
+          ; This is the Odoo configuration file
+          admin_passwd=master
+          addons_path = /mnt/extra-addons
+          EOF
+
+      - name: Start Docker Compose
         run: docker compose up -d
+
+      - name: Wait for Odoo to be ready
+        run: |
+          echo "Waiting for Odoo to start..."
+          until docker-compose exec odoo curl -s http://localhost:8069 > /dev/null; do
+            echo -n "."
+            sleep 5
+          done
+          echo "Odoo is ready."
 
       - name: Get latest commit message
         id: get_commit
@@ -41,7 +53,6 @@ jobs:
         if: steps.extract_modules.outputs.modules != ''
         run: |
           echo "Updating modules: ${{ steps.extract_modules.outputs.modules }}"
-          # Replace `odoo` below with your actual service/container name
           docker compose exec -T web odoo -u ${{ steps.extract_modules.outputs.modules }} -d odoo --stop-after-init
 
       - name: Shutdown Docker Compose
