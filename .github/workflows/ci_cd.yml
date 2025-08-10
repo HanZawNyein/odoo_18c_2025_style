@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Create odoo_pg_pass secret file
-        run: echo "odoo" > odoo_pg_pass
+        run: echo "${{ secrets.ODOO_DB_PASSWORD }}" > odoo_pg_pass
 
       - name: Create config directory and odoo.conf
         run: |
@@ -23,7 +23,7 @@ jobs:
           [options]
           ; This is the Odoo configuration file
           admin_passwd=master
-          db_name=odoo
+          db_name=${{ secrets.ODOO_DB_NAME }}
           addons_path = /mnt/extra-addons
           EOF
 
@@ -54,8 +54,9 @@ jobs:
         if: steps.extract_modules.outputs.modules != ''
         run: |
           echo "Updating modules: ${{ steps.extract_modules.outputs.modules }}"
-          docker compose run web odoo -u ${{ steps.extract_modules.outputs.modules }} -d odoo --stop-after-init --no-http
+          docker compose run web odoo -u ${{ steps.extract_modules.outputs.modules }} -d ${{ secrets.ODOO_DB_NAME }} --stop-after-init --no-http
 
       - name: Shutdown Docker Compose
         if: always()
         run: docker compose down
+    
