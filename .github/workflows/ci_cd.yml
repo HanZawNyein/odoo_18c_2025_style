@@ -54,7 +54,7 @@ jobs:
         if: steps.extract_modules.outputs.modules != ''
         run: |
           echo "Updating modules: ${{ steps.extract_modules.outputs.modules }}"
-          docker compose exec -T web odoo -u ${{ steps.extract_modules.outputs.modules }} -d odoo --stop-after-init
+          docker compose run web odoo -u ${{ steps.extract_modules.outputs.modules }} -d odoo --stop-after-init --no-http
 
       - name: Shutdown Docker Compose
         if: always()
