@@ -33,7 +33,7 @@ jobs:
       - name: Wait for Odoo to be ready
         run: |
           echo "Waiting for Odoo to start..."
-          until docker compose exec odoo curl -s http://localhost:8069 > /dev/null; do
+          until docker compose exec web curl -s http://localhost:8069 > /dev/null; do
             echo -n "."
             sleep 5
           done
