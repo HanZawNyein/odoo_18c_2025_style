@@ -1,18 +1,49 @@
-name: Docker Image CI
+name: Odoo Modules Update with Docker Compose
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
-  build:
-
+  update-modules:
     runs-on: ubuntu-latest
+    services:
+      # Optional: if you want to spin up services like db
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: odoo
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+        ports:
+          - 5432:5432
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: docker-compose up -d
+
+      - name: Get latest commit message
+        id: get_commit
+        run: echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+
+      - name: Extract modules from commit message
+        id: extract_modules
+        run: |
+          echo "Commit message: ${{ steps.get_commit.outputs.message }}"
+          modules=$(echo "${{ steps.get_commit.outputs.message }}" | grep -oP '(?<=odoo-module:)[\w,]+')
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+
+      - name: Update Odoo modules inside container
+        if: steps.extract_modules.outputs.modules != ''
+        run: |
+          echo "Updating modules: ${{ steps.extract_modules.outputs.modules }}"
+          # Replace `odoo` below with your actual service/container name
+          docker-compose exec -T web odoo -u ${{ steps.extract_modules.outputs.modules }} -d odoo --stop-after-init
+
+      - name: Shutdown Docker Compose
+        if: always()
+        run: docker-compose down
