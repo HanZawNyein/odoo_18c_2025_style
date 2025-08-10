@@ -23,6 +23,7 @@ jobs:
           [options]
           ; This is the Odoo configuration file
           admin_passwd=master
+          db_name=odoo
           addons_path = /mnt/extra-addons
           EOF
 
