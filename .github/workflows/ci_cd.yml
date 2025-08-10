@@ -47,7 +47,7 @@ jobs:
         id: extract_modules
         run: |
           echo "Commit message: ${{ steps.get_commit.outputs.message }}"
-          modules=$(echo "${{ steps.get_commit.outputs.message }}" | grep -oP '(?<=odoo-module:)[\w,]+')
+          modules=$(echo "${{ steps.get_commit.outputs.message }}" | grep -oP '(?<=#odoo-module:)[\w,]+')
           echo "modules=$modules" >> $GITHUB_OUTPUT
 
       - name: Update Odoo modules inside container
