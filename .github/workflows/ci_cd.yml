@@ -58,5 +58,5 @@ jobs:
             git fetch origin $BRANCH
             git checkout $BRANCH
             git pull origin $BRANCH
-            echo "Updating modules: $ODOO_MODULES"
+            echo "Updating modules: ${{ steps.extract_modules.outputs.modules }}"
             docker compose exec web odoo -u $ODOO_MODULES -d $ODOO_DB_NAME --stop-after-init --no-http
