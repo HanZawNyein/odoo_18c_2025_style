@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "Commit message:"
           echo "${{ steps.get_commit.outputs.message }}"
-          modules=$(echo "${{ steps.get_commit.outputs.message }}" | sed -n 's/.*#odoo-module:\\([^ ]*\\).*/\1/p' || true)
+          modules=$(echo "$message" | sed -n 's/.*#odoo-module:\([^ ]*\).*/\1/p' || true)
           if [ -z "$modules" ]; then
             echo "No modules found to update."
             modules=""
